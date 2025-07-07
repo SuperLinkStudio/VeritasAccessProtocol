@@ -191,9 +191,12 @@ account_service:account_info:name
 
 ## 网络请求规范
 
-VAP 协议所涉及的所有网络请求 (重定向除外) 均**必须**使用 `POST` 请求。内容类型应当为 `application/json`。
+VAP 协议所涉及的所有网络请求 (重定向除外) 均**必须**使用 `POST` 请求，并严格遵守以下规定:
 
-VAP 协议禁止在 Header 中包含请求内容与返回内容，请求内容与返回内容**必须全部包含在请求的 Body 部分**，且**必须严格按照标准 `JSON` 规范**。
+- 请求头 Content-Type 必须设置为 `application/json`
+- 所有请求参数和返回数据必须通过 Body 传输
+- 禁止在 URL 查询参数、Header 或 Cookie 中传递敏感数据
+- Body 数据必须为严格符合 `RFC 8259` 标准的 `JSON` 格式
 
 ## VAP 协议涉及各流程
 
