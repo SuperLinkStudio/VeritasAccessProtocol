@@ -7,7 +7,7 @@ VeritasAccessProtocol (VAP) 是一个开放、安全的授权协议，被设计�
 
 目录：
 
-- [Documents](/Documents) /
+- [VAP1.0](/VAP1.0)
 
-  - [Core.md](/Documents/Core.md): VAP 协议文档
-  - [TDT Algorithm.md](/Documents/TDT%20Algorithm.md): TDT 算法文档
+  - [Core.md](/VAP1.0/Core.md): VAP 协议文档
+  - [TDT Algorithm.md](/VAP1.0/TDT%20Algorithm.md): TDT 算法文档

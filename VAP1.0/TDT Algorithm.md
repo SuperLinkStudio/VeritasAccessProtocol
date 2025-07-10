@@ -20,7 +20,7 @@
 
 ## 算法流程
 
-1. 使用 `HKDF-SHA512` 加密算法以 `HashedSecret` 为密钥、以 `Salt` 为盐值对 `Secret` 进行加密，得到 `HashedKey`
+1. 使用 `HKDF-SHA256` 加密算法以 `HashedSecret` 为密钥、以 `Salt` 为盐值对 `Secret` 进行加密，得到 `HashedKey`
 2. 使用 `HMAC_BLAKE3` 哈希加密算法以 `HashedKey` 为密钥对 `Timestamp` 进行加密，最终得到 `Blake3Result`
 3. 对 `Blake3Result` 进行 `SHAKE128` 算法加密，得到最终结果
 
@@ -35,7 +35,7 @@
 function GenerateTDT(secret: byte[], salt: byte[], timestamp: int64, resultLength: int = 256) -> byte[]:
    function GenerateTDT(secret: byte[], timestamp: int64, context: string, resultLength: int = 32) -> byte[]:
     // 密钥派生
-    hashed_hey = HKDF_SHA512(secret: secret, salt: salt)
+    hashed_hey = HKDF_SHA256(secret: secret, salt: salt)
 
     // 时间戳转换 (大端序 8 字节)
     timestampBytes = toBigEndianBytes(timestamp, 8)
