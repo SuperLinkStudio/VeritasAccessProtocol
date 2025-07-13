@@ -78,7 +78,7 @@ function ValidateTDT(tdt: byte[], secret: byte[], timestamp: int64) -> bool:
 
 **发送方**和**认证服务器**之间的时间同步解决方案应当由**认证服务器**规定。同理，此设计旨在为认证服务器与客户端提供更高的灵活性，使其能够不断更新并提高安全性。
 
-作为最低安全要求，**认证服务器**应当指定信任的 NTP 服务器实现各方之间的时间同步。
+作为最低安全要求，**认证服务器**应当指定信任的 NTP 服务器实现各方之间的时间同步。对于采用最低安全要求的，我们强烈建议启用 RFC 8915 认证扩展。
 
 ## TDT 密钥轮换
 
@@ -101,8 +101,8 @@ function ValidateTDT(tdt: byte[], secret: byte[], timestamp: int64) -> bool:
 2. 使用[信息加密传输要求](./Information%20Transfer%20Recommendations.md)和**认证服务器**规定的方法对 `tdt` 解密、验签，得到 `tdt_message`
 3. 将 `tdt_message` 以第一个空格作为分界线进行分割，按顺序得到时间戳 `current_timestamp` 和 `tdt_value`
 4. 将 `current_timestamp` 与 **认证服务器**当前的毫秒级 UTC 时间戳进行比较，误差的绝对值必须小于 `timestamp_offset`
-5. 获取存储的时间戳 `last_timestamp` (首次验证时跳过这一步)
-6. 将 `current_timestamp` 与 `last_timestamp` 进行比较，`current_timestamp` 必须大于 `last_timestamp` (首次验证时跳过这一步)
+5. 获取存储的时间戳 `last_timestamp` (首次验证时或 `last_timestamp` 过期时跳过这一步)
+6. 将 `current_timestamp` 与 `last_timestamp` 进行比较，`current_timestamp` 必须大于 `last_timestamp` (首次验证时或 `last_timestamp` 过期时跳过这一步)
 7. 依据 `current_timestamp` 和 `tdt_secret` 验证 `tdt_value`
 8. 将 `current_timestamp` 作为 `last_timestamp` 进行存储
 
@@ -111,3 +111,15 @@ function ValidateTDT(tdt: byte[], secret: byte[], timestamp: int64) -> bool:
 > - `timestamp_offset` 的单位为毫秒，具体大小由**认证服务器**综合规定，但**禁止大于** 60000，即 1min
 > - 对于 `last_timestamp` 的存储必须持久化，以对抗重放攻击。
 > - `last_timestamp` 应当与(**资源服务器的**)唯一标识符或(**客户端的**)资源访问令牌关联存储。
+
+### `last_timestamp` 过期的的判定标准
+
+该判定标准应当由**认证服务器**规定，以下为**最低安全标准**:
+
+已知 `current_timestamp`、`last_timestamp` 与 `timestamp_offset`，当:
+
+```
+last_timestamp + (2 * timestamp_offset) < current_timestamp
+```
+
+时，判定 `last_timestamp` 过期。
