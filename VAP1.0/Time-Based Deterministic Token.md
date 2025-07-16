@@ -15,7 +15,7 @@
 
 | 名称            | 用途                      |
 | --------------- | ------------------------- |
-| `tdt_secret`    | 密钥 (字节数组)           |
+| `tdt_secret`    | 密钥 (UTF-8 字符串)       |
 | `timestamp`     | **毫秒级** **UTC** 时间戳 |
 | `result_length` | 结果长度 (默认为 256)     |
 
@@ -25,8 +25,9 @@
 
 ### 流程
 
-1. 将 `timestamp` 转换为 **8 字节大端序** 字节数组
-2. 以 `tdt_secret` 为密钥, 对 `timestamp` 使用 **KMAC128** 算法计算生成最终结果，长度为 `result_length`
+1. 将 `tdt_secret` 通过 UTF-8 编码转换为字节数组，得到 `secret_bytes`
+2. 将 `timestamp` 转换为 **8 字节大端序** 字节数组
+3. 以 `tdt_secret` 为密钥, 对 `timestamp` 使用 **KMAC128** 算法计算生成最终结果，长度为 `result_length`
 
 > [!IMPORTANT]
 >
@@ -37,13 +38,16 @@
 ### 伪代码示例
 
 ```
-function GenerateTDT(tdt_secret: bytes, timestamp: int, resultLength: int = 256) -> bytes:
+function GenerateTDT(tdt_secret: string, timestamp: int, resultLength: int = 256) -> bytes:
+    # 将密钥通过 UTF-8 编码转换为字节数组
+    secret_bytes = tdt_secret.encode('utf-8')
+
     # 时间戳转换 (大端序 8字节)
     timestamp_bytes = timestamp.to_bytes(8, 'big')
 
     # KMAC128 核心令牌生成 (抗量子MAC)
     result = kmac128(
-        key = secret,
+        key = secret_bytes,
         data = timestamp_bytes,
         output_len = resultLength,  # 输出长度为 resultLength
         customization = "5beeb687e266"  # 固定域分离标签
@@ -55,7 +59,7 @@ function GenerateTDT(tdt_secret: bytes, timestamp: int, resultLength: int = 256)
 验证 TDT 值时，可以：
 
 ```
-function ValidateTDT(tdt: byte[], secret: byte[], timestamp: int64) -> bool:
+function ValidateTDT(tdt: byte[], secret: string, timestamp: int64) -> bool:
     // 获取 tdt 长度
     resultLength = getByteLength(tdt)
 
@@ -74,15 +78,26 @@ function ValidateTDT(tdt: byte[], secret: byte[], timestamp: int64) -> bool:
 - `tdt_secret` 长度不得小于为 32 字节
 - 在实现算法文档的伪代码示例中 `ValidateTDT` 函数 (或任何功能等效的 TDT 验证函数) 时，**必须**使用具备恒定时间比较特性的函数来比较两个 TDT 值 (例如 HMAC 算法中常见的 `compareDigest` 函数) 。**禁止**使用普通的字节数组比较操作，以防止潜在的时序攻击漏洞。恒定时间比较确保验证操作所需的时间不依赖于 TDT 值本身的匹配程度。
 
+## `tdt_secret` 生成
+
+`tdt_secret` 生成方案应当由**认证服务器**规定。同理，此设计旨在为认证服务器与客户端提供更高的灵活性，使其能够不断更新并提高安全性。
+
+作为最低安全标准，应至少采用随机且唯一的 SHA256 哈希值。
+
+同时，以下内容为硬性标准:
+
+- 将 `tdt_secret` 通过 UTF-8 编码转换为字节数组后，得到的的字节数组长度必须满足 **≥32 字节** 要求
+- 禁止使用非规范化 Unicode 字符串（需 NFC 规范化）
+
 ## 时间同步
 
-**发送方**和**认证服务器**之间的时间同步解决方案应当由**认证服务器**规定。同理，此设计旨在为认证服务器与客户端提供更高的灵活性，使其能够不断更新并提高安全性。
+**发送方**和**认证服务器**之间的时间同步解决方案应当由**认证服务器**规定。此设计仍然旨在为认证服务器与客户端提供更高的灵活性，使其能够不断更新并提高安全性。
 
 作为最低安全要求，**认证服务器**应当指定信任的 NTP 服务器实现各方之间的时间同步。对于采用最低安全要求的，我们强烈建议启用 RFC 8915 认证扩展。
 
 ## TDT 密钥轮换
 
-本协议**不会强制规定**具体 `tdt_secret` 轮换方案。此设计旨在为认证服务器与客户端提供更高的灵活性，使其能够不断更新并采用更高安全级别的 `tdt_secret` 轮换方案。
+本协议**不会强制规定**具体 `tdt_secret` 轮换方案。此设计依旧旨在为认证服务器与客户端提供更高的灵活性，使其能够不断更新并采用更高安全级别的 `tdt_secret` 轮换方案。
 
 ## `tdt` 传输流程
 
