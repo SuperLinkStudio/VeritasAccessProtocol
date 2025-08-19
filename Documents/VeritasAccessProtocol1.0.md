@@ -1,3 +1,19 @@
+<!--
+Copyright 2025 WillowTree1184 on behalf of SuperLinkStudio 超链接工作室
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
 # Veritas Access Protocol (VAP) 1.0 文档
 
 Veritas Access Protocol (VAP) 是一种**专门用于资源管理访问令牌使用阶段**的安全协议，旨在保障客户端与服务端之间受保护数据的交互安全。
